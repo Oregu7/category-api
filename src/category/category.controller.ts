@@ -35,7 +35,7 @@ export class CategoryController {
     return category.$dto;
   }
 
-  @ApiOperation({ summary: 'Получение категории' })
+  @ApiOperation({ summary: 'Изменение категории' })
   @Put(':key')
   async updateCategory(
     @Param('key') key: string,
