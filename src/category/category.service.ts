@@ -50,17 +50,29 @@ export class CategoryService {
   }
 
   async updateCategory(category: CategoryEntity, dto: CategoryUpdateDto) {
-    CategoryEntity.deleteAllFieldsExcept(dto, [
+    const patch: Partial<CategoryEntity> = dto;
+
+    CategoryEntity.deleteAllFieldsExcept(patch, [
       'name',
       'description',
       'active',
     ]);
 
-    category.apply(dto);
+    category.apply(patch);
 
     if (dto.name !== undefined) {
-      category.slug = this.generateSlug(dto.name);
+      patch.slug = this.generateSlug(patch.name);
+      category.slug = patch.slug;
     }
+
+    if (category.$isChanged === false) {
+      throw new HttpException(
+        "Category isn't changed",
+        HttpStatus.NOT_MODIFIED,
+      );
+    }
+
+    await this.categoryRepository.nativeUpdate({ ID: category.ID }, patch);
 
     return category;
   }
