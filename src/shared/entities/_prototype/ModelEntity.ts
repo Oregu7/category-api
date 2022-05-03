@@ -7,12 +7,6 @@ import {
 // =======================================================
 
 export class ModelEntity {
-  static $relations: string[] = [];
-
-  // ----------------------------
-  // System properties
-  // ----------------------------
-
   $isCreated = false;
   $isChanged = false;
 

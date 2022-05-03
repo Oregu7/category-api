@@ -1,11 +1,16 @@
-import { EntityRepository } from '@mikro-orm/core';
+import { EntityRepository, FilterQuery, FindOptions } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import slugify from 'slugify';
+import { stringToBoolean } from 'src/shared/utils/helpers';
 
 import { CategoryEntity } from '../shared/entities/category.entity';
-import { CategoryCreateDto, CategoryUpdateDto } from './dto/category.dto';
+import {
+  CategoryCreateDto,
+  CategoryUpdateDto,
+  GetCategoriesQuery,
+} from './dto/category.dto';
 
 @Injectable()
 export class CategoryService {
@@ -79,6 +84,55 @@ export class CategoryService {
 
   async removeCategory(category: CategoryEntity) {
     await this.categoryRepository.nativeDelete(category);
+  }
+
+  async listCategories(params: GetCategoriesQuery) {
+    const {
+      name,
+      description,
+      search,
+      active,
+      pageSize = 2,
+      page = 1,
+    } = params;
+
+    // 1. build filter
+    const filter: FilterQuery<CategoryEntity> = {};
+
+    if (name !== undefined && search === undefined) {
+      if (name.includes('е') === true) {
+        filter.name = {
+          $or: [{ $ilike: name }, { $ilike: name.replace(/е/gi, 'ё') }],
+        };
+      } else {
+        filter.name = { $ilike: name };
+      }
+    }
+
+    if (description !== undefined && search === undefined) {
+      filter.description = { $ilike: description };
+    }
+
+    if (search !== undefined) {
+      filter.$or = [
+        { name: { $ilike: name } },
+        { description: { $ilike: description } },
+      ];
+
+      if (name.includes('е') === true) {
+        filter.$or.push({ name: { $ilike: name.replace(/е/gi, 'ё') } });
+      }
+    }
+
+    if (active !== undefined) {
+      filter.active = { $eq: stringToBoolean(active) };
+    }
+
+    // 2. build options
+    const options: FindOptions<CategoryEntity> = {
+      limit: pageSize,
+      offset: (page > 0 ? page - 1 : 0) * pageSize,
+    };
   }
 
   // ------------------------------------------

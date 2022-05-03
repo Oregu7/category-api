@@ -1,5 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString, Length } from 'class-validator';
+import { Transform, Type, TransformFnParams } from 'class-transformer';
+import {
+  IsBoolean,
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class CategoryCreateDto {
   @ApiProperty({ type: 'string', description: 'Название категории' })
@@ -19,7 +29,7 @@ export class CategoryCreateDto {
 }
 
 export class CategoryUpdateDto {
-  @ApiProperty({ type: 'string', description: 'Название категории' })
+  @ApiPropertyOptional({ type: 'string', description: 'Название категории' })
   @IsString()
   @IsOptional()
   @Length(1, 100)
@@ -31,8 +41,51 @@ export class CategoryUpdateDto {
   @Length(1, 500)
   description?: string;
 
-  @ApiProperty({ type: 'boolean', description: 'ВКЛ / ВЫКЛ' })
+  @ApiPropertyOptional({ type: 'boolean', description: 'ВКЛ / ВЫКЛ' })
   @IsBoolean()
   @IsOptional()
   active?: boolean;
+}
+
+export class GetCategoriesQuery {
+  @ApiPropertyOptional({ type: 'string', description: 'Название категории' })
+  @IsString()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Length(1, 100)
+  @IsOptional()
+  name?: string;
+
+  @ApiPropertyOptional({ type: 'string', description: 'Описание категории' })
+  @IsString()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Length(1, 500)
+  @IsOptional()
+  description?: string;
+
+  @ApiPropertyOptional({ type: 'string', description: 'Активная категория' })
+  @IsIn(['0', '1', 'false', 'true'])
+  @IsOptional()
+  active?: string;
+
+  @ApiPropertyOptional({ type: 'string', description: 'Описание или название' })
+  @IsString()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Length(1, 500)
+  @IsOptional()
+  search?: string;
+
+  @ApiPropertyOptional({ type: 'number', description: 'Количество категорий' })
+  @IsNumber()
+  @Min(1)
+  @Max(9)
+  @Type(() => Number)
+  @IsOptional()
+  pageSize?: number;
+
+  @ApiPropertyOptional({ type: 'number', description: 'Номер страницы' })
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  @IsOptional()
+  page?: number;
 }
