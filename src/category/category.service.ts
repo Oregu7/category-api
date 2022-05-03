@@ -30,7 +30,7 @@ export class CategoryService {
 
     const category = await this.categoryRepository.findOne(where);
 
-    if (category === undefined) {
+    if (category === null) {
       throw new HttpException('Category - Not Found', HttpStatus.NOT_FOUND);
     }
 
@@ -48,6 +48,14 @@ export class CategoryService {
       ...dto,
       slug: this.generateSlug(dto.name),
     });
+
+    const isExist = await this.categoryRepository.findOne({
+      slug: category.slug,
+    });
+
+    if (isExist !== null) {
+      throw new HttpException('Already Exists', HttpStatus.CONFLICT);
+    }
 
     await this.categoryRepository.nativeInsert(category);
 
@@ -102,9 +110,10 @@ export class CategoryService {
 
     if (name !== undefined && search === undefined) {
       if (name.includes('е') === true) {
-        filter.name = {
-          $or: [{ $ilike: name }, { $ilike: name.replace(/е/gi, 'ё') }],
-        };
+        filter.$or = [
+          { name: { $ilike: name } },
+          { name: { $ilike: name.replace(/е/gi, 'ё') } },
+        ];
       } else {
         filter.name = { $ilike: name };
       }

@@ -6,25 +6,43 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CategoryService } from './category.service';
-import { CategoryCreateDto, CategoryUpdateDto } from './dto/category.dto';
+import {
+  CategoryCreateDto,
+  CategoryUpdateDto,
+  GetCategoriesQuery,
+} from './dto/category.dto';
 
+@ApiTags('Категории')
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @ApiOperation({ summary: 'Создание черновика брони' })
+  @ApiOperation({ summary: 'Создание категории' })
   @UsePipes(new ValidationPipe())
   @Post('')
   async createCategory(@Body() dto: CategoryCreateDto) {
     const category = await this.categoryService.createCategory(dto);
 
     return category.$dto;
+  }
+
+  @ApiOperation({ summary: 'Получение списка категорий' })
+  @UsePipes(new ValidationPipe())
+  @Get('')
+  async listCategories(@Query() params: GetCategoriesQuery) {
+    const { list, count } = await this.categoryService.listCategories(params);
+
+    return {
+      list: list.map((category) => category.$dto),
+      count,
+    };
   }
 
   @ApiOperation({ summary: 'Получение категории' })

@@ -19,18 +19,22 @@ const CATEGORY_SORTED_FIELDS = [
   ...CategoryEntity.SORTED_FIELDS.map((field) => `-${field}`),
 ];
 
+const trimProperty = ({ value }: TransformFnParams) => value?.trim();
+
 // -----------------------------------------------
 
 export class CategoryCreateDto {
   @ApiProperty({ type: 'string', description: 'Название категории' })
   @IsString()
+  @Transform(trimProperty)
   @Length(1, 100)
   name: string;
 
   @ApiPropertyOptional({ type: 'string', description: 'Описание категории' })
   @IsString()
-  @IsOptional()
+  @Transform(trimProperty)
   @Length(1, 500)
+  @IsOptional()
   description?: string;
 
   @ApiProperty({ type: 'boolean', description: 'ВКЛ / ВЫКЛ' })
@@ -41,14 +45,16 @@ export class CategoryCreateDto {
 export class CategoryUpdateDto {
   @ApiPropertyOptional({ type: 'string', description: 'Название категории' })
   @IsString()
-  @IsOptional()
+  @Transform(trimProperty)
   @Length(1, 100)
+  @IsOptional()
   name?: string;
 
   @ApiPropertyOptional({ type: 'string', description: 'Описание категории' })
   @IsString()
-  @IsOptional()
+  @Transform(trimProperty)
   @Length(1, 500)
+  @IsOptional()
   description?: string;
 
   @ApiPropertyOptional({ type: 'boolean', description: 'ВКЛ / ВЫКЛ' })
@@ -60,14 +66,14 @@ export class CategoryUpdateDto {
 export class GetCategoriesQuery {
   @ApiPropertyOptional({ type: 'string', description: 'Название категории' })
   @IsString()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Transform(trimProperty)
   @Length(1, 100)
   @IsOptional()
   name?: string;
 
   @ApiPropertyOptional({ type: 'string', description: 'Описание категории' })
   @IsString()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Transform(trimProperty)
   @Length(1, 500)
   @IsOptional()
   description?: string;
@@ -79,7 +85,7 @@ export class GetCategoriesQuery {
 
   @ApiPropertyOptional({ type: 'string', description: 'Описание или название' })
   @IsString()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Transform(trimProperty)
   @Length(1, 500)
   @IsOptional()
   search?: string;
@@ -107,3 +113,5 @@ export class GetCategoriesQuery {
   @IsOptional()
   sort?: string;
 }
+
+// -----------------------------------------------
