@@ -5,7 +5,7 @@ import { isUUID } from 'class-validator';
 import slugify from 'slugify';
 import { stringToBoolean } from 'src/shared/utils/helpers';
 
-import { CategoryEntity } from '../shared/entities/category.entity';
+import { CategoryEntity } from '../shared/entities';
 import {
   CategoryCreateDto,
   CategoryUpdateDto,
@@ -94,6 +94,7 @@ export class CategoryService {
       active,
       pageSize = 2,
       page = 1,
+      sort = '-createdDate',
     } = params;
 
     // 1. build filter
@@ -132,7 +133,15 @@ export class CategoryService {
     const options: FindOptions<CategoryEntity> = {
       limit: pageSize,
       offset: (page > 0 ? page - 1 : 0) * pageSize,
+      orderBy: this.parseSortedField(sort),
     };
+
+    const [list, count] = await this.categoryRepository.findAndCount(
+      filter,
+      options,
+    );
+
+    return { list, count };
   }
 
   // ------------------------------------------
@@ -141,5 +150,13 @@ export class CategoryService {
 
   generateSlug(value: string) {
     return slugify(value, { lower: true });
+  }
+
+  parseSortedField(field: string) {
+    if (field[0] !== '-') {
+      return { [field]: 'ASC' };
+    }
+
+    return { [field.slice(1)]: 'DESC' };
   }
 }

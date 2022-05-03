@@ -10,6 +10,16 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { CategoryEntity } from '../../shared/entities';
+
+// -----------------------------------------------
+
+const CATEGORY_SORTED_FIELDS = [
+  ...CategoryEntity.SORTED_FIELDS,
+  ...CategoryEntity.SORTED_FIELDS.map((field) => `-${field}`),
+];
+
+// -----------------------------------------------
 
 export class CategoryCreateDto {
   @ApiProperty({ type: 'string', description: 'Название категории' })
@@ -88,4 +98,12 @@ export class GetCategoriesQuery {
   @Type(() => Number)
   @IsOptional()
   page?: number;
+
+  @ApiPropertyOptional({
+    enum: CATEGORY_SORTED_FIELDS,
+    description: 'Сортировка',
+  })
+  @IsIn(CATEGORY_SORTED_FIELDS)
+  @IsOptional()
+  sort?: string;
 }
