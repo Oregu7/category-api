@@ -49,13 +49,7 @@ export class CategoryService {
       slug: this.generateSlug(dto.name),
     });
 
-    const isExist = await this.categoryRepository.findOne({
-      slug: category.slug,
-    });
-
-    if (isExist !== null) {
-      throw new HttpException('Already Exists', HttpStatus.CONFLICT);
-    }
+    await this.checkSlugExist(category.slug, true);
 
     await this.categoryRepository.nativeInsert(category);
 
@@ -63,27 +57,34 @@ export class CategoryService {
   }
 
   async updateCategory(category: CategoryEntity, dto: CategoryUpdateDto) {
-    const patch: Partial<CategoryEntity> = dto;
+    const patch: Partial<CategoryEntity> = {};
 
-    CategoryEntity.deleteAllFieldsExcept(patch, [
+    CategoryEntity.deleteAllFieldsExcept(dto, [
       'name',
       'description',
       'active',
     ]);
 
-    category.apply(patch);
-
-    if (dto.name !== undefined) {
-      patch.slug = this.generateSlug(patch.name);
-      category.slug = patch.slug;
+    for (const key of Object.keys(dto)) {
+      if (dto[key] !== category[key]) {
+        patch[key] = dto[key];
+      }
     }
 
-    if (category.$isChanged === false) {
+    if (patch.name !== undefined) {
+      patch.slug = this.generateSlug(patch.name);
+
+      await this.checkSlugExist(patch.slug, true);
+    }
+
+    if (Object.keys(patch).length === 0) {
       throw new HttpException(
         "Category isn't changed",
         HttpStatus.NOT_MODIFIED,
       );
     }
+
+    category.apply(patch);
 
     await this.categoryRepository.nativeUpdate({ ID: category.ID }, patch);
 
@@ -167,5 +168,15 @@ export class CategoryService {
     }
 
     return { [field.slice(1)]: 'DESC' };
+  }
+
+  async checkSlugExist(slug: string, throwError = false) {
+    const isExist = (await this.categoryRepository.findOne({ slug })) !== null;
+
+    if (isExist === true && throwError === true) {
+      throw new HttpException('Category - Already Exists', HttpStatus.CONFLICT);
+    }
+
+    return isExist;
   }
 }
