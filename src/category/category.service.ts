@@ -3,7 +3,7 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { isUUID } from 'class-validator';
 import slugify from 'slugify';
-import { stringToBoolean } from 'src/shared/utils/helpers';
+import { stringToBoolean } from '../shared/utils/helpers';
 
 import { CategoryEntity } from '../shared/entities';
 import {
